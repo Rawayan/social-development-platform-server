@@ -1,15 +1,22 @@
-const express = require("express");
-const cors = require("cors");
-require("dotenv").config();
+
+import "dotenv/config";
+
+import express from "express";
+import cors from "cors";
+
+import { connectDB } from "./config/db.js";
+import { createIndexes } from "./config/indexes.js";
 
 const app = express();
 
 const PORT = process.env.PORT || 5000;
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
 
 // Middleware
 app.use(
   cors({
-    origin: process.env.CLIENT_ORIGIN || "http://localhost:3000",
+    origin: CLIENT_URL,
+    credentials: true,
   })
 );
 
@@ -19,20 +26,33 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
-    message: "Social Development Events API is running!",
+    message: "Together API Server is running.",
   });
 });
 
-// Health check
+// Health route
 app.get("/api/health", (req, res) => {
   res.status(200).json({
     success: true,
-    status: "OK",
-    message: "Server is healthy",
+    message: "Server is healthy.",
+    database: "Connected",
   });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+// Start server after successful database connection
+async function startServer() {
+  try {
+    await connectDB();
+
+    await createIndexes();
+
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error("Server startup failed:", error);
+    process.exit(1);
+  }
+}
+
+startServer();
