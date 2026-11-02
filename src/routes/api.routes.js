@@ -1,4 +1,5 @@
 
+
 import { Router } from "express";
 
 import healthRoutes from "./health.routes.js";
@@ -10,4 +11,3 @@ router.use("/health", healthRoutes);
 router.use("/events", eventsRoutes);
 
 export default router;
-
