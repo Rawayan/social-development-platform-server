@@ -2,6 +2,8 @@
 import { Router } from "express";
 import { z } from "zod";
 
+import { ObjectId } from "mongodb";
+
 import { getCollections } from "../config/collections.js";
 import { requireAuth } from "../middlewares/auth.middleware.js";
 import { asyncHandler } from "../utils/async-handler.js";
@@ -152,6 +154,40 @@ router.get(
       message: "Upcoming events fetched successfully",
       count: upcomingEvents.length,
       data: upcomingEvents,
+    });
+  })
+);
+
+// GET: Get a single event by ID
+router.get(
+  "/:id",
+  asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid event ID",
+      });
+    }
+
+    const { events } = getCollections();
+
+    const event = await events.findOne({
+      _id: new ObjectId(id),
+    });
+
+    if (!event) {
+      return res.status(404).json({
+        success: false,
+        message: "Event not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Event fetched successfully",
+      data: event,
     });
   })
 );
