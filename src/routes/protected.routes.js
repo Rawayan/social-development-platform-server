@@ -1,13 +1,17 @@
 
 import { Router } from "express";
+
 import { requireAuth } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
+// GET /api/protected
+// JWT protected test endpoint
+
 router.get("/", requireAuth, (req, res) => {
-  res.status(200).json({
+  return res.status(200).json({
     success: true,
-    message: "Protected API accessed successfully",
+    message: "Protected API accessed successfully.",
     user: {
       id: req.user.id,
       name: req.user.name,
@@ -15,18 +19,5 @@ router.get("/", requireAuth, (req, res) => {
     },
   });
 });
-
-export default router;
-
-
-import { Router } from "express";
-
-import healthRoutes from "./health.routes.js";
-import protectedRoutes from "./protected.routes.js";
-
-const router = Router();
-
-router.use("/health", healthRoutes);
-router.use("/protected", protectedRoutes);
 
 export default router;
