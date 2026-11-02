@@ -126,3 +126,32 @@ router.post(
 );
 
 export default router;
+
+// GET: Get all upcoming events
+router.get(
+  "/",
+  asyncHandler(async (req, res) => {
+    const { events } = getCollections();
+
+    const currentDate = new Date().toISOString();
+
+    const upcomingEvents = await events
+      .find({
+        eventDate: {
+          $gte: currentDate,
+        },
+      })
+      .sort({
+        eventDate: 1,
+        createdAt: -1,
+      })
+      .toArray();
+
+    res.status(200).json({
+      success: true,
+      message: "Upcoming events fetched successfully",
+      count: upcomingEvents.length,
+      data: upcomingEvents,
+    });
+  })
+);
