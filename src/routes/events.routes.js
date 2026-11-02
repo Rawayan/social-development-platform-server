@@ -176,6 +176,38 @@ router.post(
 );
 
 // ==========================================
+// GET /api/events/mine
+// Protected: Get events created by the authenticated user
+// ==========================================
+
+router.get(
+  "/mine",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { events } = await getCollections();
+
+    // Always scope the query to the verified JWT user ID.
+    const myEvents = await events
+      .find({ creatorId: req.user.id })
+      .sort({
+        eventDate: 1,
+        createdAt: -1,
+      })
+      .toArray();
+
+    return res.status(200).json({
+      success: true,
+      message: "Your created events retrieved successfully.",
+      count: myEvents.length,
+      data: myEvents.map((event) => ({
+        ...event,
+        _id: event._id.toString(),
+      })),
+    });
+  })
+);
+
+// ==========================================
 // GET /api/events/:id
 // Public: Get a single event by ID
 // ==========================================
