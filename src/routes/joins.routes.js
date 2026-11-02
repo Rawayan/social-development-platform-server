@@ -82,3 +82,67 @@ router.post(
 );
 
 export default router;
+
+// GET /api/joins/my-events
+router.get(
+  "/my-events",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { events, eventJoins } = getCollections();
+
+    // Always use the verified JWT user ID.
+    const userId = req.user.id;
+
+    // Find only this user's join records.
+    const joinRecords = await eventJoins
+      .find({ userId })
+      .toArray();
+
+    if (joinRecords.length === 0) {
+      return res.status(200).json({
+        success: true,
+        count: 0,
+        data: [],
+      });
+    }
+
+    // eventId was stored as a string in Step 15.
+    const eventObjectIds = joinRecords
+      .filter((join) => ObjectId.isValid(join.eventId))
+      .map((join) => new ObjectId(join.eventId));
+
+    if (eventObjectIds.length === 0) {
+      return res.status(200).json({
+        success: true,
+        count: 0,
+        data: [],
+      });
+    }
+
+    const eventDocuments = await events
+      .find({ _id: { $in: eventObjectIds } })
+      .toArray();
+
+    // Map join records so we can include joinedAt.
+    const joinMap = new Map(
+      joinRecords.map((join) => [join.eventId, join.joinedAt])
+    );
+
+    const joinedEvents = eventDocuments
+      .map((event) => ({
+        ...event,
+        joinedAt: joinMap.get(event._id.toString()) ?? null,
+      }))
+      .sort(
+        (a, b) =>
+          new Date(a.eventDate).getTime() -
+          new Date(b.eventDate).getTime()
+      );
+
+    return res.status(200).json({
+      success: true,
+      count: joinedEvents.length,
+      data: joinedEvents,
+    });
+  })
+);
