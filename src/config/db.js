@@ -11,6 +11,7 @@ if (!uri) {
 const client = new MongoClient(uri);
 
 let clientPromise;
+let indexesPromise;
 
 export async function connectDB() {
   if (!clientPromise) {
@@ -29,11 +30,23 @@ export async function connectDB() {
   return database;
 }
 
+export function ensureIndexes() {
+  if (!indexesPromise) {
+    indexesPromise = import("./indexes.js")
+      .then(({ createIndexes }) => createIndexes())
+      .catch((error) => {
+        indexesPromise = undefined;
+        throw error;
+      });
+  }
+
+  return indexesPromise;
+}
+
 export async function getDB() {
   if (!clientPromise) {
-    throw new Error(
-      "Database is not connected. Call connectDB() first."
-    );
+    await connectDB();
+    await ensureIndexes();
   }
 
   await clientPromise;
