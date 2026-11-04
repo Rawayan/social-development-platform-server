@@ -2,7 +2,7 @@
 
 **Together API** is the backend service for the Together community development platform. It powers event discovery, event creation, joining, and owner-only event management with secure JWT authentication.
 
-**Live API:** https://together-api.example.com _(replace with the deployed URL once the server is live)_
+**Live Link:**  https://together-client-theta.vercel.app
 
 ## Features
 
